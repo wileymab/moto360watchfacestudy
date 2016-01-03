@@ -102,6 +102,50 @@ public class BatmanLogo {
         );
         logoPath.arcTo(arcBounds,100,82,true);
 
+        arcBounds.set(
+                110,
+                50,
+                146,
+                137
+        );
+        logoPath.arcTo(arcBounds,352,103,true);
+
+        logoPath.moveTo(146,87);
+        logoPath.lineTo(152,101);
+
+        arcBounds.set(
+                140,
+                99,
+                bounds.width() - 140,
+                120
+        );
+        logoPath.arcTo(arcBounds,242,30,true);
+
+        logoPath.moveTo(160,222);
+        logoPath.lineTo(146,188);
+
+        arcBounds.set(
+                111,
+                177,
+                155,
+                300
+        );
+        logoPath.arcTo(arcBounds,231,74,true);
+
+        logoPath.moveTo(120,191);
+        logoPath.lineTo(97,174);
+
+        arcBounds.set(
+                69,
+                172,
+                106,
+                207
+        );
+        logoPath.arcTo(arcBounds,147,160,true);
+
+        logoPath.moveTo(70,196);
+        logoPath.lineTo(89,222);
+
         canvas.drawPath(logoPath,mTestPaint);
     }
 
