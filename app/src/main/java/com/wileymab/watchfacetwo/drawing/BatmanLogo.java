@@ -2,7 +2,7 @@ package com.wileymab.watchfacetwo.drawing;
 
 import android.content.res.Resources;
 import android.graphics.Canvas;
-import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -53,7 +53,8 @@ public class BatmanLogo {
         mOutlinePaint = new Paint();
         mOutlinePaint.setStyle(Paint.Style.STROKE);
         mOutlinePaint.setStrokeWidth(mResources.getDimension(R.dimen.batman_logo_outline_stroke_width));
-        mOutlinePaint.setColor(mResources.getColor(R.color.batman_logo_outline_color));
+        mTestPaint.setStrokeJoin(Paint.Join.BEVEL);
+        mOutlinePaint.setColor(mResources.getColor(R.color.batman_logo_black));
         mOutlinePaint.setAntiAlias(!mIsAmbient);
 
     }
@@ -64,27 +65,25 @@ public class BatmanLogo {
 
     public void drawOnCanvasWithBounds(Canvas canvas, Rect bounds) {
         // TODO Check for ambient mode before drawing.
-
-        drawTestShape(canvas,bounds);
-
-        drawLogoOutline(canvas,bounds);
+        drawLogo(canvas,bounds);
     }
 
-    private void drawTestShape(Canvas canvas, Rect bounds) {
+    private void drawLogo(Canvas canvas, Rect bounds) {
 
         Path logoPath = new Path();
         RectF arcBounds = new RectF();
 
+        // Outer wing arc
         arcBounds.set(
                 20,
                 88,
                 bounds.width() - 20,
-                bounds.height() - 88
+                bounds.width() - 88
         );
 
         logoPath.arcTo(arcBounds,120,128,true);
 
-
+        // Upper wing ingress
         arcBounds.set(
                 94,
                 80,
@@ -93,7 +92,7 @@ public class BatmanLogo {
         );
         logoPath.arcTo(arcBounds,172,45,true);
 
-
+        // Upper wing trough
         arcBounds.set(
                 94,
                 90,
@@ -102,6 +101,7 @@ public class BatmanLogo {
         );
         logoPath.arcTo(arcBounds,100,82,true);
 
+        // Upper wing egress to ear
         arcBounds.set(
                 110,
                 50,
@@ -110,9 +110,11 @@ public class BatmanLogo {
         );
         logoPath.arcTo(arcBounds,352,103,true);
 
+        // Ear to top of head
         logoPath.moveTo(146,87);
         logoPath.lineTo(152,101);
 
+        // Half of top of head
         arcBounds.set(
                 140,
                 99,
@@ -121,9 +123,11 @@ public class BatmanLogo {
         );
         logoPath.arcTo(arcBounds,242,30,true);
 
+        // From tail point to inside arc
         logoPath.moveTo(160,222);
         logoPath.lineTo(146,188);
 
+        // Wing lower inside arc
         arcBounds.set(
                 111,
                 177,
@@ -132,50 +136,32 @@ public class BatmanLogo {
         );
         logoPath.arcTo(arcBounds,231,74,true);
 
+        // Minor point
         logoPath.moveTo(120,191);
         logoPath.lineTo(97,174);
 
+        // Wing lower outside arc
         arcBounds.set(
-                69,
+                71,
                 172,
                 106,
                 207
         );
         logoPath.arcTo(arcBounds,147,160,true);
 
-        logoPath.moveTo(70,196);
+        // Terminus into outer wing arc
+        logoPath.moveTo(73,198);
         logoPath.lineTo(89,222);
 
-        canvas.drawPath(logoPath,mTestPaint);
-    }
+        Matrix reflectionMatrix = new Matrix();
+        reflectionMatrix.preScale(-1f,1f,bounds.width()/2,bounds.height()/2);
 
-    private void drawLogoOutline(Canvas canvas, Rect bounds) {
+        Path transformedPath = new Path();
+        logoPath.transform(reflectionMatrix,transformedPath);
 
-        // Path to hold all of the path components
-        Path batmanLogoPath = new Path();
+        logoPath.addPath(transformedPath);
 
-        // Add the outer wing arc paths
-        batmanLogoPath = addOuterWingArcs(batmanLogoPath,bounds);
-
-        // Draw the logo
-        canvas.drawPath(batmanLogoPath,mOutlinePaint);
-    }
-
-    private Path addOuterWingArcs(Path masterPath,Rect bounds) {
-
-        // Create the bounding rectangle.
-        int     left = 20,
-                top = 88,
-                right = bounds.width() - left,
-                bottom = bounds.height() - top;
-
-        // Add the start and sweep for the left side.
-        //masterPath.addArc(left,top,right,bottom,120,128);
-
-        // Add the start and sweep for the right side.
-        masterPath.addArc(left,top,right,bottom,292,128);
-
-        return masterPath;
+        canvas.drawPath(logoPath,mOutlinePaint);
     }
 
 }

@@ -211,11 +211,11 @@ public class A2_MABFace extends CanvasWatchFaceService {
             } else {
                 canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), mBackgroundPaint);
 
-                if ( mLogo == null ) {
-                    mLogo = loadLogo(getResources(),R.drawable.batman_black_outline,bounds);
-                }
-
-                canvas.drawBitmap(mLogo,0,0,mLogoPaint);
+//                if ( mLogo == null ) {
+//                    mLogo = loadLogo(getResources(),R.drawable.batman_black_outline,bounds);
+//                }
+//
+//                canvas.drawBitmap(mLogo,0,0,mLogoPaint);
 
                 mBatmanLogo.drawOnCanvasWithBounds(canvas,bounds);
             }
