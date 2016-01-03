@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Batman1">
+        <item name="backgroundColor">@color/batman_1_background</item>
+        <item name="foregroundColor">@color/batman_1_foreground</item>
+        <item name="handsColor">@color/batman_1_hands</item>
+    </style>
+
+    <style name="Batman2">
+        <item name="backgroundColor">@color/batman_2_background</item>
+        <item name="foregroundColor">@color/batman_2_foreground</item>
+        <item name="handsColor">@color/batman_2_hands</item>
+    </style>
+
+</resources>

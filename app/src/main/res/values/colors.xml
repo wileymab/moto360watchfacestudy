@@ -6,12 +6,24 @@
     <color name="background">#444444</color>
     <color name="batman_logo_outline_color">#ffea00</color>
     <color name="batman_logo_black">#000000</color>
-    <color name="test_shape_color">#ff0000</color>
+    <color name="test_shape_color">#55ff0000</color>
 
     <!-- A_MABFace1 -->
     <color name="a1_background2">#000088</color>
 
     <!-- A_MABFace2 -->
     <color name="a2_background2">#880000</color>
+
+
+
+    <!-- Batman1 Theme -->
+    <color name="batman_1_background">#ffea00</color>
+    <color name="batman_1_foreground">#000000</color>
+    <color name="batman_1_hands">#ffc400</color>
+
+    <!-- Batman2 Theme -->
+    <color name="batman_2_background">#646464</color>
+    <color name="batman_2_foreground">#1143b7</color>
+    <color name="batman_2_hands">#ffeb3b</color>
 
 </resources>

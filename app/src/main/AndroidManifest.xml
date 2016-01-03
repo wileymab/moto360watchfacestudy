@@ -40,8 +40,8 @@
             android:value="@integer/google_play_services_version" />
 
         <service
-            android:name=".A2_MABFace"
-            android:label="@string/a2_mabface"
+            android:name=".BatmanWatchFaceService"
+            android:label="@string/batman_watch_face"
             android:permission="android.permission.BIND_WALLPAPER">
             <meta-data
                 android:name="android.service.wallpaper"

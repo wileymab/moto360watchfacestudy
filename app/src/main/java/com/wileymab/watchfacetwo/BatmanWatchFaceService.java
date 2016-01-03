@@ -21,22 +21,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
-import android.text.format.Time;
-import android.util.Log;
 import android.view.SurfaceHolder;
 
-import com.wileymab.watchfacetwo.drawing.BatmanLogo;
+import com.wileymab.watchfacetwo.drawing.BatmanWatchFace;
 
 import java.lang.ref.WeakReference;
 import java.util.TimeZone;
@@ -46,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  * Analog watch face with a ticking second hand. In ambient mode, the second hand isn't shown. On
  * devices with low-bit ambient mode, the hands are drawn without anti-aliasing in ambient mode.
  */
-public class A2_MABFace extends CanvasWatchFaceService {
+public class BatmanWatchFaceService extends CanvasWatchFaceService {
     /**
      * Update rate in milliseconds for interactive mode. We update once a second to advance the
      * second hand.
@@ -64,15 +58,15 @@ public class A2_MABFace extends CanvasWatchFaceService {
     }
 
     private static class EngineHandler extends Handler {
-        private final WeakReference<A2_MABFace.Engine> mWeakReference;
+        private final WeakReference<BatmanWatchFaceService.Engine> mWeakReference;
 
-        public EngineHandler(A2_MABFace.Engine reference) {
+        public EngineHandler(BatmanWatchFaceService.Engine reference) {
             mWeakReference = new WeakReference<>(reference);
         }
 
         @Override
         public void handleMessage(Message msg) {
-            A2_MABFace.Engine engine = mWeakReference.get();
+            BatmanWatchFaceService.Engine engine = mWeakReference.get();
             if (engine != null) {
                 switch (msg.what) {
                     case MSG_UPDATE_TIME:
@@ -84,27 +78,27 @@ public class A2_MABFace extends CanvasWatchFaceService {
     }
 
     private class Engine extends CanvasWatchFaceService.Engine {
+
+        BatmanWatchFace mBatmanWatchFace;
+
+        boolean mAmbient;
+        int mTapCount;
+
+        int[] themeIds = new int[] {
+                R.style.Batman1,
+                R.style.Batman2
+        };
+
         final Handler mUpdateTimeHandler = new EngineHandler(this);
         boolean mRegisteredTimeZoneReceiver = false;
 
-        Paint mBackgroundPaint;
-        Paint mHandPaint;
-
-        Bitmap mLogo;
-        Paint mLogoPaint;
-
-        BatmanLogo mBatmanLogo;
-
-        boolean mAmbient;
-        Time mTime;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                mTime.clear(intent.getStringExtra("time-zone"));
-                mTime.setToNow();
+                if ( mBatmanWatchFace != null)
+                    mBatmanWatchFace.clearTimeToTimeZone(intent.getStringExtra("time-zone"));
             }
         };
-        int mTapCount;
 
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -116,31 +110,14 @@ public class A2_MABFace extends CanvasWatchFaceService {
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
 
-            setWatchFaceStyle(new WatchFaceStyle.Builder(A2_MABFace.this)
+            setWatchFaceStyle(new WatchFaceStyle.Builder(BatmanWatchFaceService.this)
                     .setCardPeekMode(WatchFaceStyle.PEEK_MODE_SHORT)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
                     .setShowSystemUiTime(false)
                     .setAcceptsTapEvents(true)
                     .build());
 
-            Resources resources = A2_MABFace.this.getResources();
-
-            mBackgroundPaint = new Paint();
-            mBackgroundPaint.setColor(resources.getColor(R.color.background));
-
-            mHandPaint = new Paint();
-            mHandPaint.setColor(resources.getColor(R.color.analog_hands));
-            mHandPaint.setStrokeWidth(resources.getDimension(R.dimen.analog_hand_stroke));
-            mHandPaint.setAntiAlias(true);
-            mHandPaint.setStrokeCap(Paint.Cap.ROUND);
-
-            mLogoPaint = new Paint();
-            mLogoPaint.setAntiAlias(true);
-            mLogoPaint.setFilterBitmap(true);
-
-            mBatmanLogo = BatmanLogo.getSingleton(getResources());
-
-            mTime = new Time();
+            mBatmanWatchFace = BatmanWatchFace.getSingleton(getResources());
         }
 
         @Override
@@ -166,9 +143,8 @@ public class A2_MABFace extends CanvasWatchFaceService {
             super.onAmbientModeChanged(inAmbientMode);
             if (mAmbient != inAmbientMode) {
                 mAmbient = inAmbientMode;
-                if (mLowBitAmbient) {
-                    mHandPaint.setAntiAlias(!inAmbientMode);
-                }
+                if ( mBatmanWatchFace != null )
+                    mBatmanWatchFace.setAmbientMode(mAmbient,mLowBitAmbient);
                 invalidate();
             }
 
@@ -183,7 +159,7 @@ public class A2_MABFace extends CanvasWatchFaceService {
          */
         @Override
         public void onTapCommand(int tapType, int x, int y, long eventTime) {
-            Resources resources = A2_MABFace.this.getResources();
+            Resources resources = BatmanWatchFaceService.this.getResources();
             switch (tapType) {
                 case TAP_TYPE_TOUCH:
                     // The user has started touching the screen.
@@ -194,8 +170,7 @@ public class A2_MABFace extends CanvasWatchFaceService {
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
                     mTapCount++;
-                    mBackgroundPaint.setColor(resources.getColor(mTapCount % 2 == 0 ?
-                            R.color.background : R.color.a2_background2));
+                    setTheme(themeIds[mTapCount]);
                     break;
             }
             invalidate();
@@ -203,52 +178,7 @@ public class A2_MABFace extends CanvasWatchFaceService {
 
         @Override
         public void onDraw(Canvas canvas, final Rect bounds) {
-            mTime.setToNow();
-
-            // Draw the background.
-            if (isInAmbientMode()) {
-                canvas.drawColor(Color.BLACK);
-            } else {
-                canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), mBackgroundPaint);
-
-//                if ( mLogo == null ) {
-//                    mLogo = loadLogo(getResources(),R.drawable.batman_black_outline,bounds);
-//                }
-//
-//                canvas.drawBitmap(mLogo,0,0,mLogoPaint);
-
-                mBatmanLogo.drawOnCanvasWithBounds(canvas,bounds);
-            }
-
-            // Find the center. Ignore the window insets so that, on round watches with a
-            // "chin", the watch face is centered on the entire screen, not just the usable
-            // portion.
-            float spanLength = bounds.width();
-            float centerX = spanLength / 2f, centerY = centerX;
-            //float centerY = bounds.height() / 2f;
-
-            float secRot = mTime.second / 30f * (float) Math.PI;
-            int minutes = mTime.minute;
-            float minRot = minutes / 30f * (float) Math.PI;
-            float hrRot = ((mTime.hour + (minutes / 60f)) / 6f) * (float) Math.PI;
-
-            float secLength = centerX - 20;
-            float minLength = centerX - 40;
-            float hrLength = centerX - 80;
-
-            if (!mAmbient) {
-                float secX = (float) Math.sin(secRot) * secLength;
-                float secY = (float) -Math.cos(secRot) * secLength;
-                canvas.drawLine(centerX, centerY, centerX + secX, centerY + secY, mHandPaint);
-            }
-
-            float minX = (float) Math.sin(minRot) * minLength;
-            float minY = (float) -Math.cos(minRot) * minLength;
-            canvas.drawLine(centerX, centerY, centerX + minX, centerY + minY, mHandPaint);
-
-            float hrX = (float) Math.sin(hrRot) * hrLength;
-            float hrY = (float) -Math.cos(hrRot) * hrLength;
-            canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY, mHandPaint);
+            mBatmanWatchFace.drawOnCanvasWithBounds(canvas,bounds);
         }
 
         @Override
@@ -257,10 +187,8 @@ public class A2_MABFace extends CanvasWatchFaceService {
 
             if (visible) {
                 registerReceiver();
-
                 // Update time zone in case it changed while we weren't visible.
-                mTime.clear(TimeZone.getDefault().getID());
-                mTime.setToNow();
+                mBatmanWatchFace.clearTimeToTimeZone(TimeZone.getDefault().getID());
             } else {
                 unregisterReceiver();
             }
@@ -276,7 +204,7 @@ public class A2_MABFace extends CanvasWatchFaceService {
             }
             mRegisteredTimeZoneReceiver = true;
             IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
-            A2_MABFace.this.registerReceiver(mTimeZoneReceiver, filter);
+            BatmanWatchFaceService.this.registerReceiver(mTimeZoneReceiver, filter);
         }
 
         private void unregisterReceiver() {
@@ -284,7 +212,7 @@ public class A2_MABFace extends CanvasWatchFaceService {
                 return;
             }
             mRegisteredTimeZoneReceiver = false;
-            A2_MABFace.this.unregisterReceiver(mTimeZoneReceiver);
+            BatmanWatchFaceService.this.unregisterReceiver(mTimeZoneReceiver);
         }
 
         /**
@@ -317,51 +245,6 @@ public class A2_MABFace extends CanvasWatchFaceService {
                         - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
                 mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
             }
-        }
-
-        /*
-            MBW - My methods and such.
-        */
-        private Bitmap loadLogo(Resources resources, int resourceId, Rect bounds) {
-            Bitmap sourceBitmap = BitmapFactory.decodeResource(resources, resourceId);
-            Bitmap finalBitmap = checkSize(sourceBitmap,bounds);
-            sourceBitmap.recycle();
-            sourceBitmap = null;
-            return finalBitmap;
-        }
-
-        private Bitmap checkSize(Bitmap sourceBitmap, Rect bounds) {
-
-            boolean isTooWide = (sourceBitmap.getWidth() > bounds.width());
-            boolean isTooHigh = (sourceBitmap.getHeight() > bounds.height());
-
-            if ( isTooWide || isTooHigh ) {
-                // determine longest measure
-                boolean useHeight = (sourceBitmap.getHeight() > sourceBitmap.getWidth());
-                boolean useWidth = !useHeight;
-                return scaleBitmap(sourceBitmap,bounds,useWidth);
-            }
-
-            return sourceBitmap;
-        }
-
-        private Bitmap scaleBitmap(Bitmap sourceBitmap, Rect bounds, boolean useWidth) {
-
-            float ratio;
-            int scaledWidth, scaledHeight;
-
-            if ( useWidth ) {
-                ratio = (float)bounds.width() / (float)sourceBitmap.getWidth();
-                scaledWidth = bounds.width();
-                scaledHeight = Math.round(ratio * sourceBitmap.getHeight());
-            }
-            else {
-                ratio = (float)bounds.height() / (float)sourceBitmap.getHeight();
-                scaledHeight = bounds.height();
-                scaledWidth = Math.round(ratio * sourceBitmap.getWidth());
-            }
-
-            return Bitmap.createScaledBitmap(sourceBitmap,scaledWidth,scaledHeight,true);
         }
 
     }
