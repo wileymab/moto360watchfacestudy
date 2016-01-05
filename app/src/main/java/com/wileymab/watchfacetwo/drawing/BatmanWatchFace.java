@@ -54,8 +54,6 @@ public class BatmanWatchFace {
 
     private void initPaints() {
 
-        // -- INTERACTIVE
-
         mBackgroundPaint = new Paint();
         mBackgroundPaint.setStyle(Paint.Style.FILL);
         mBackgroundPaint.setColor(mResources.getColor(R.color.init_bg));
