@@ -2,9 +2,9 @@
 <resources>
 
     <declare-styleable name="BatmanTheme">
-        <attr name="backgroundColor" format="color" />
-        <attr name="foregroundColor" format="color" />
-        <attr name="handsColor" format="color" />
+        <attr name="bmwf_backgroundColor" format="color" />
+        <attr name="bmwf_foregroundColor" format="color" />
+        <attr name="bmwf_handsColor" format="color" />
     </declare-styleable>
 
 </resources>

@@ -9,6 +9,7 @@ import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.text.format.Time;
+import android.util.TypedValue;
 
 import com.wileymab.watchfacetwo.R;
 
@@ -31,6 +32,7 @@ public class BatmanWatchFace {
      */
 
     private Resources mResources;
+    private Resources.Theme mTheme;
 
     private boolean mIsAmbient;
     private boolean mIsLowBitAmbient;
@@ -38,12 +40,11 @@ public class BatmanWatchFace {
 
     private Paint mBackgroundPaint;
     private Paint mForegroundPaint;
-    private Paint mHandsPaint;
 
-    private Paint mAmbientForegroundPaint;
-    private Paint mAmbientHandsPaint;
+    private Paint mHandsStrokePaint;
+    private Paint mHandsFillPaint;
 
-    private Paint mTestPaint;
+    private Path mLogoPath;
 
     private BatmanWatchFace(Resources resources) {
         mResources = resources;
@@ -56,47 +57,69 @@ public class BatmanWatchFace {
         // -- INTERACTIVE
 
         mBackgroundPaint = new Paint();
-        mBackgroundPaint.setColor(mResources.getColor(R.color.background));
-        mBackgroundPaint.setAntiAlias(!mIsAmbient);
+        mBackgroundPaint.setStyle(Paint.Style.FILL);
+        mBackgroundPaint.setColor(mResources.getColor(R.color.init_bg));
 
         mForegroundPaint = new Paint();
-        mForegroundPaint.setStyle(Paint.Style.FILL);
-        mForegroundPaint.setColor(mResources.getColor(R.color.batman_1_background));
-        mForegroundPaint.setAntiAlias(true);
+        mForegroundPaint.setColor(mResources.getColor(R.color.init_fg));
+        mForegroundPaint.setStrokeWidth(mResources.getDimension(R.dimen.batman_logo_outline_stroke_width));
 
-        mHandsPaint = new Paint();
-        mHandsPaint.setColor(mResources.getColor(R.color.analog_hands));
-        mHandsPaint.setStrokeWidth(mResources.getDimension(R.dimen.analog_hand_stroke));
-        mHandsPaint.setStrokeCap(Paint.Cap.ROUND);
-        mHandsPaint.setAntiAlias(true);
+        mHandsStrokePaint = new Paint();
+        mHandsStrokePaint.setStyle(Paint.Style.STROKE);
+        mHandsStrokePaint.setColor(mResources.getColor(R.color.init_fg));
+        mHandsStrokePaint.setStrokeWidth(mResources.getDimension(R.dimen.analog_hand_stroke));
+        mHandsStrokePaint.setStrokeCap(Paint.Cap.ROUND);
 
-        // --- AMBIENT
+        mHandsFillPaint = new Paint();
+        mHandsFillPaint.setStyle(Paint.Style.FILL);
+        mHandsFillPaint.setColor(mResources.getColor(R.color.init_bg));
 
-        mAmbientForegroundPaint = new Paint();
-        mAmbientForegroundPaint.setStyle(Paint.Style.STROKE);
-        mAmbientForegroundPaint.setColor(Color.WHITE);
-        mAmbientForegroundPaint.setAntiAlias(!mIsLowBitAmbient);
+        attemptToThemeColors();
 
-        mAmbientHandsPaint = new Paint();
-        mAmbientHandsPaint.setStyle(Paint.Style.STROKE);
-        mAmbientHandsPaint.setStrokeWidth(mResources.getDimension(R.dimen.analog_hand_stroke));
-        mAmbientHandsPaint.setStrokeCap(Paint.Cap.ROUND);
-        mAmbientHandsPaint.setColor(Color.WHITE);
-        mAmbientHandsPaint.setAntiAlias(!mIsLowBitAmbient);
+    }
 
-        // --- OTHER CRAP
+    private void attemptToThemeColors() {
 
-        mTestPaint = new Paint();
-        mTestPaint.setStyle(Paint.Style.FILL);
-        mTestPaint.setStrokeWidth(mResources.getDimension(R.dimen.batman_logo_outline_stroke_width));
-        mTestPaint.setStrokeJoin(Paint.Join.BEVEL);
-        mTestPaint.setColor(mResources.getColor(R.color.test_shape_color));
-        mTestPaint.setAntiAlias(true);
+        if ( mIsAmbient ) {
+            mBackgroundPaint.setColor(Color.BLACK);
+
+            mForegroundPaint.setColor(Color.WHITE);
+            mForegroundPaint.setStyle(Paint.Style.STROKE);
+
+            mHandsFillPaint.setColor(Color.BLACK);
+            mHandsStrokePaint.setColor(Color.WHITE);
+        }
+        else if ( mTheme != null ) {
+
+            TypedValue attrValue = new TypedValue();
+
+            mTheme.resolveAttribute(R.attr.bmwf_backgroundColor, attrValue, true);
+            mBackgroundPaint.setColor(attrValue.data);
+            mHandsFillPaint.setColor(attrValue.data);
+
+            mTheme.resolveAttribute(R.attr.bmwf_foregroundColor, attrValue, true);
+            mForegroundPaint.setColor(attrValue.data);
+            mForegroundPaint.setStyle(Paint.Style.FILL);
+            mHandsStrokePaint.setColor(attrValue.data);
+
+        }
+
+        mBackgroundPaint.setAntiAlias(!mIsAmbient);
+        mForegroundPaint.setAntiAlias(!mIsAmbient);
+        mHandsFillPaint.setAntiAlias(!mIsAmbient);
+        mHandsStrokePaint.setAntiAlias(!mIsAmbient);
+
+    }
+
+    public void setTheme(Resources.Theme theme) {
+        mTheme = theme;
+        attemptToThemeColors();
     }
 
     public void setAmbientMode(boolean isAmbient, boolean isLowBitAmbient) {
         mIsAmbient = isAmbient;
         mIsLowBitAmbient = isLowBitAmbient;
+        attemptToThemeColors();
     }
 
     public void clearTimeToTimeZone(String timezoneId) {
@@ -112,12 +135,7 @@ public class BatmanWatchFace {
     }
 
     private void drawBackground(Canvas canvas, Rect bounds) {
-        if (mIsAmbient) {
-            canvas.drawColor(Color.BLACK);
-        }
-        else {
-            canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), mBackgroundPaint);
-        }
+        canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), mBackgroundPaint);
     }
 
     /*
@@ -125,44 +143,61 @@ public class BatmanWatchFace {
      */
     private void drawForeground(Canvas canvas, Rect bounds) {
 
-        Path logoPath = new Path();
+        if ( mLogoPath == null ) {
 
-        // Draw the left half
-        logoPath.arcTo(0, 0, 280, 144,120,128,true);
-        logoPath.rQuadTo(-35,33,22,43);
-        logoPath.rQuadTo(16,-3,16,-51);
-        logoPath.rLineTo(7,14);
-        logoPath.rQuadTo(0,0,9,-1);
-        logoPath.rLineTo(0,130);
-        logoPath.rQuadTo(-25,-77,-42,-36);
-        logoPath.rQuadTo(-33,-29,-44,-14);
-        logoPath.rQuadTo(-15,13,15,45);
+            mLogoPath = new Path();
+
+            // Draw the left half
+            mLogoPath.arcTo(0, 0, 280, 144, 120, 128, true);
+            mLogoPath.rQuadTo(-35, 33, 22, 43);
+            mLogoPath.rQuadTo(16, -3, 16, -51);
+            mLogoPath.rLineTo(7, 14);
+            mLogoPath.rQuadTo(0, 0, 9, -1);
+            mLogoPath.rLineTo(0, 130);
+            mLogoPath.rQuadTo(-25, -77, -42, -36);
+            mLogoPath.rQuadTo(-33, -29, -44, -14);
+            mLogoPath.rQuadTo(-15, 13, 15, 45);
 
 
-        // Reflect the left half to create the right half
-        Matrix reflectionMatrix = new Matrix();
-        reflectionMatrix.preScale(-1f,1f,141,0);
-        Path transformedPath = new Path();
-        logoPath.transform(reflectionMatrix,transformedPath);
+            // Reflect the left half to create the right half
+            Matrix reflectionMatrix = new Matrix();
+            reflectionMatrix.preScale(-1f, 1f, 141, 0);
+            Path transformedPath = new Path();
+            mLogoPath.transform(reflectionMatrix, transformedPath);
 
-        // Union the halves into one path
-        logoPath.op(transformedPath, Path.Op.UNION);
+            // Union the halves into one path
+            mLogoPath.op(transformedPath, Path.Op.UNION);
 
-        // Center the logo
-        RectF logoBounds = new RectF();
-        logoPath.computeBounds(logoBounds,true);
 
-        int logoCenterX = (int)logoBounds.centerX();
-        int logoCenterY = (int)logoBounds.centerY();
-        int faceCenterX = bounds.centerX();
-        int faceCenterY = bounds.centerY();
+            // Scale the logo to fit any screen similarly
+            RectF logoBounds = new RectF();
+            mLogoPath.computeBounds(logoBounds, true);
 
-        Matrix translationMatrix = new Matrix();
-        translationMatrix.setTranslate( (faceCenterX-logoCenterX), (faceCenterY-logoCenterY) );
-        logoPath.transform(translationMatrix);
+            float scale = 0.99f;
+            int targetWidth = (int) (scale * bounds.width());
 
-        Paint paint = (mIsAmbient) ? mAmbientForegroundPaint : mForegroundPaint;
-        canvas.drawPath( logoPath, paint );
+            float operationalScalar = (float) targetWidth / logoBounds.width();
+
+            Matrix scalingMatrix = new Matrix();
+            scalingMatrix.setScale(operationalScalar, operationalScalar);
+            mLogoPath.transform(scalingMatrix);
+
+
+            // Center the logo on the face
+            mLogoPath.computeBounds(logoBounds, true);
+
+            int logoCenterX = (int) logoBounds.centerX();
+            int logoCenterY = (int) logoBounds.centerY();
+            int faceCenterX = bounds.centerX();
+            int faceCenterY = bounds.centerY();
+
+            Matrix translationMatrix = new Matrix();
+            translationMatrix.setTranslate((faceCenterX - logoCenterX), (faceCenterY - logoCenterY));
+            mLogoPath.transform(translationMatrix);
+        }
+
+        Paint paint = mForegroundPaint;
+        canvas.drawPath( mLogoPath, paint );
 
     }
 
@@ -178,30 +213,61 @@ public class BatmanWatchFace {
         float centerX = spanLength / 2f, centerY = centerX;
         //float centerY = bounds.height() / 2f;
 
-        float secRot = mTime.second / 30f * (float) Math.PI;
+
+        int seconds = mTime.second;
         int minutes = mTime.minute;
-        float minRot = minutes / 30f * (float) Math.PI;
-        float hrRot = ((mTime.hour + (minutes / 60f)) / 6f) * (float) Math.PI;
+        float secRot = seconds * 6f;
+        float minRot = ((seconds / 60f) + minutes) * 6f;
+        float hrRot = ((minutes / 60f) + mTime.hour) * 30f;
 
         float secLength = centerX - 20;
         float minLength = centerX - 40;
         float hrLength = centerX - 80;
 
-        Paint paint = (mIsAmbient) ? mAmbientHandsPaint : mHandsPaint;
+        float handSize = 6f;
+        float hubSize = handSize * 3f;
 
-        if (!mIsAmbient) {
-            float secX = (float) Math.sin(secRot) * secLength;
-            float secY = (float) -Math.cos(secRot) * secLength;
-            canvas.drawLine(centerX, centerY, centerX + secX, centerY + secY, paint);
+        Path hubPath = new Path();
+        hubPath.addOval(-hubSize,-hubSize,hubSize,hubSize,Path.Direction.CW);
+
+        Matrix rotateHand = new Matrix();
+
+        Path minHandPath = new Path();
+        minHandPath.addRoundRect(-handSize, -handSize, minLength, handSize, handSize, handSize, Path.Direction.CW);
+        rotateHand.reset();
+        rotateHand.setRotate(minRot, 0, 0);
+        minHandPath.transform(rotateHand);
+
+        Path hrHandPath = new Path();
+        hrHandPath.addRoundRect(-handSize, -handSize, hrLength, handSize, handSize, handSize, Path.Direction.CW);
+        rotateHand.reset();
+        rotateHand.setRotate(hrRot, 0, 0);
+        hrHandPath.transform(rotateHand);
+
+        hrHandPath.op(minHandPath, Path.Op.UNION);
+
+        if ( !mIsAmbient ) {
+            Path secHandPath = new Path();
+            secHandPath.addRoundRect(-handSize, -handSize, secLength, handSize, handSize, handSize, Path.Direction.CW);
+            rotateHand.reset();
+            rotateHand.setRotate(secRot, 0, 0);
+            secHandPath.transform(rotateHand);
+
+            hrHandPath.op(secHandPath, Path.Op.UNION);
         }
 
-        float minX = (float) Math.sin(minRot) * minLength;
-        float minY = (float) -Math.cos(minRot) * minLength;
-        canvas.drawLine(centerX, centerY, centerX + minX, centerY + minY, paint);
+        hrHandPath.op(hubPath, Path.Op.UNION);
 
-        float hrX = (float) Math.sin(hrRot) * hrLength;
-        float hrY = (float) -Math.cos(hrRot) * hrLength;
-        canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY, paint);
+        Matrix resetToMidnight = new Matrix();
+        resetToMidnight.setRotate(-90f,0,0);
+        hrHandPath.transform(resetToMidnight);
+
+        Matrix translateToCenter = new Matrix();
+        translateToCenter.setTranslate(bounds.width() / 2, bounds.width() / 2);
+        hrHandPath.transform(translateToCenter);
+
+        canvas.drawPath(hrHandPath, mHandsFillPaint);
+        canvas.drawPath(hrHandPath, mHandsStrokePaint);
 
     }
 

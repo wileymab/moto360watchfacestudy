@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">WatchFaceTwo</string>
-    <string name="a1_mabface">A1_MABFace</string>
+    <string name="app_name">MABFaces</string>
     <string name="batman_watch_face">Batman</string>
 </resources>

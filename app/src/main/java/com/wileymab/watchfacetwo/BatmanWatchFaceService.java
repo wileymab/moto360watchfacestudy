@@ -20,7 +20,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -83,10 +82,13 @@ public class BatmanWatchFaceService extends CanvasWatchFaceService {
 
         boolean mAmbient;
         int mTapCount;
+        int mMeridian = Integer.MIN_VALUE;
 
-        int[] themeIds = new int[] {
+        int[] mThemeIdArray = new int[] {
                 R.style.Batman1,
-                R.style.Batman2
+                R.style.Batman2,
+                R.style.Batman3,
+                R.style.Batman4
         };
 
         final Handler mUpdateTimeHandler = new EngineHandler(this);
@@ -118,6 +120,7 @@ public class BatmanWatchFaceService extends CanvasWatchFaceService {
                     .build());
 
             mBatmanWatchFace = BatmanWatchFace.getSingleton(getResources());
+            setThemeById();
         }
 
         @Override
@@ -159,7 +162,6 @@ public class BatmanWatchFaceService extends CanvasWatchFaceService {
          */
         @Override
         public void onTapCommand(int tapType, int x, int y, long eventTime) {
-            Resources resources = BatmanWatchFaceService.this.getResources();
             switch (tapType) {
                 case TAP_TYPE_TOUCH:
                     // The user has started touching the screen.
@@ -169,15 +171,32 @@ public class BatmanWatchFaceService extends CanvasWatchFaceService {
                     break;
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
-                    mTapCount++;
-                    setTheme(themeIds[mTapCount]);
+                    if ( x <= mMeridian ) {
+                        --mTapCount;
+                    }
+                    else {
+                        ++mTapCount;
+                    }
+
+                    if ( mTapCount < 0 ) {
+                        mTapCount = mThemeIdArray.length + mTapCount;
+                    }
+
+                    mTapCount %= mThemeIdArray.length;
+                    setThemeById();
                     break;
             }
             invalidate();
         }
 
+        public void setThemeById() {
+            setTheme(mThemeIdArray[mTapCount]);
+            mBatmanWatchFace.setTheme(getTheme());
+        }
+
         @Override
         public void onDraw(Canvas canvas, final Rect bounds) {
+            if ( mMeridian == Integer.MIN_VALUE ) setMeridian(bounds);
             mBatmanWatchFace.drawOnCanvasWithBounds(canvas,bounds);
         }
 
@@ -241,10 +260,13 @@ public class BatmanWatchFaceService extends CanvasWatchFaceService {
             invalidate();
             if (shouldTimerBeRunning()) {
                 long timeMs = System.currentTimeMillis();
-                long delayMs = INTERACTIVE_UPDATE_RATE_MS
-                        - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
+                long delayMs = INTERACTIVE_UPDATE_RATE_MS - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
                 mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
             }
+        }
+
+        private void setMeridian(Rect bounds) {
+            mMeridian = bounds.width() / 2;
         }
 
     }

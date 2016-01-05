@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="analog_hand_stroke">3dp</dimen>
-    <dimen name="batman_logo_outline_stroke_width">1dp</dimen>
+    <dimen name="analog_hand_stroke">2dp</dimen>
+    <dimen name="batman_logo_outline_stroke_width">2dp</dimen>
 </resources>
