@@ -190,7 +190,7 @@ public class BatmanWatchFaceService extends CanvasWatchFaceService {
         }
 
         public void setThemeById() {
-            setTheme(mThemeIdArray[mTapCount]);
+            getTheme().applyStyle(mThemeIdArray[mTapCount],true);
             mBatmanWatchFace.setTheme(getTheme());
         }
 

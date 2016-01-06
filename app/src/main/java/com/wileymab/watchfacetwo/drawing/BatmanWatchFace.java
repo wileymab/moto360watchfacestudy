@@ -65,7 +65,7 @@ public class BatmanWatchFace {
         mHandsStrokePaint = new Paint();
         mHandsStrokePaint.setStyle(Paint.Style.STROKE);
         mHandsStrokePaint.setColor(mResources.getColor(R.color.init_fg));
-        mHandsStrokePaint.setStrokeWidth(mResources.getDimension(R.dimen.analog_hand_stroke));
+        mHandsStrokePaint.setStrokeWidth(mResources.getDimension(R.dimen.batman_logo_outline_stroke_width));
         mHandsStrokePaint.setStrokeCap(Paint.Cap.ROUND);
 
         mHandsFillPaint = new Paint();

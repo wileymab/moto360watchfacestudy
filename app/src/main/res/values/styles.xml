@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Batman1" parent="">
+    <style name="Batman1" parent="android:Theme">
         <item name="bmwf_backgroundColor">@color/batman_1_background</item>
         <item name="bmwf_foregroundColor">@color/batman_1_foreground</item>
         <item name="bmwf_handsColor">@color/batman_1_hands</item>
     </style>
 
-    <style name="Batman2">
+    <style name="Batman2" parent="android:Theme">
         <item name="bmwf_backgroundColor">@color/batman_2_background</item>
         <item name="bmwf_foregroundColor">@color/batman_2_foreground</item>
         <item name="bmwf_handsColor">@color/batman_2_hands</item>
     </style>
 
-    <style name="Batman3">
+    <style name="Batman3" parent="android:Theme">
         <item name="bmwf_backgroundColor">@color/batman_3_background</item>
         <item name="bmwf_foregroundColor">@color/batman_3_foreground</item>
         <item name="bmwf_handsColor">@color/batman_3_hands</item>
     </style>
 
-    <style name="Batman4">
+    <style name="Batman4" parent="android:Theme">
         <item name="bmwf_backgroundColor">@color/batman_4_background</item>
         <item name="bmwf_foregroundColor">@color/batman_4_foreground</item>
         <item name="bmwf_handsColor">@color/batman_4_hands</item>
