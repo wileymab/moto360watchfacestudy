@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">MABFaces</string>
     <string name="batman_watch_face">Batman</string>
+    <string name="title_activity_configuration">ConfigurationActivity</string>
+    <string name="hello_round">Hello Round World!</string>
+    <string name="hello_square">Hello Square World!</string>
 </resources>
